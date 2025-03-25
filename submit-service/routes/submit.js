@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Question = require('../models/Question');
+const { publishToQueue } = require('../rabbitmq'); // Import publisher
 
 /**
  * @swagger
@@ -46,11 +46,13 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const newQuestion = new Question({ question, answers, correct, category });
-    await newQuestion.save();
-    res.status(201).json({ message: 'Question submitted successfully!' });
+    const payload = { question, answers, correct, category };
+    await publishToQueue(payload); 
+
+    res.status(201).json({ message: 'Question submitted to queue successfully!' });
   } catch (err) {
-    res.status(500).json({ error: 'Error saving question.' });
+    console.error('Queue Error:', err);
+    res.status(500).json({ error: 'Error publishing to queue.' });
   }
 });
 

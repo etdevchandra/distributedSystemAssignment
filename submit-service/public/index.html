@@ -10,7 +10,7 @@
   <div class="container">
     <h1>Submit a New Question</h1>
     <form id="submitForm">
-      <label>Question:</label>
+      <label for="question">Question:</label>
       <input type="text" id="question" required />
 
       <label>Answers:</label>
@@ -19,7 +19,7 @@
       <input type="text" id="answer3" placeholder="Answer 3" required />
       <input type="text" id="answer4" placeholder="Answer 4" required />
 
-      <label>Correct Answer:</label>
+      <label for="correct">Correct Answer:</label>
       <select id="correct" required>
         <option value="">--Select Correct Answer--</option>
         <option value="1">Answer 1</option>
@@ -28,18 +28,18 @@
         <option value="4">Answer 4</option>
       </select>
 
-      <label>Choose a category:</label>
+      <label for="categoryDropdown">Choose a category:</label>
       <select id="categoryDropdown">
         <option value="">--Select Existing Category--</option>
       </select>
 
-      <label>Or add a new category:</label>
+      <label for="newCategory">Or add a new category:</label>
       <input type="text" id="newCategory" placeholder="New category name" />
 
       <button type="submit">Submit Question</button>
     </form>
     <div id="message"></div>
   </div>
-  <script src="app.js"></script>
+  <script src="app.js" defer></script>
 </body>
 </html>
