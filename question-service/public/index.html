@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Question App</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <h1>Question App</h1>
+  <div class="container">
+    <label for="categorySelect">Choose a category:</label>
+    <select id="categorySelect">
+      <option value="">--Select Category--</option>
+    </select>
+    <button id="fetchBtn">Get Question</button>
+
+    <div id="questionContainer" class="hidden">
+      <h2 id="questionText"></h2>
+      <ul id="answersList"></ul>
+    </div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
