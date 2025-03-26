@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   submit:
     build:
@@ -10,7 +8,7 @@ services:
       - rabbitmq
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - QUESTION_SERVICE_URL=question:3000/categories
+      - QUESTION_SERVICE_URL=http://question:3000/categories
     volumes:
       - ./submit-service:/app
       - submit-cache:/app/cache
