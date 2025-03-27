@@ -1,0 +1,33 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f8f8f8;
+    margin: 0;
+    padding: 2rem;
+  }
+  .container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  textarea, input, select {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+  }
+  button {
+    padding: 0.6rem 1.2rem;
+    margin-right: 1rem;
+    font-size: 1rem;
+  }
+  .hidden {
+    display: none;
+  }
+  #status {
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  

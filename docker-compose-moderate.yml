@@ -1,0 +1,44 @@
+services:
+  moderate:
+    build:
+      context: ./moderate-service
+    ports:
+      - "3100:3100"
+    environment:
+      # Connect to Submit's RabbitMQ to consume SUBMITTED_QUESTIONS
+      - RABBITMQ_URL=amqp://guest:guest@submit-rabbitmq:5672
+      
+      # Connect to Moderate's own RabbitMQ to publish MODERATED_QUESTIONS
+      - MODERATE_RABBITMQ_URL=amqp://guest:guest@moderate-rabbitmq:5672
+      
+      # For category list from Question service
+      - QUESTION_SERVICE_URL=http://question:3000/categories
+
+    volumes:
+      - ./moderate-service:/app
+      - moderate-cache:/app/cache
+
+    depends_on:
+      - moderate-rabbitmq
+
+    networks:
+      - microservices-network
+
+  moderate-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: moderate-rabbitmq
+    ports:
+      - "4101:5672"      # AMQP port for MODERATED_QUESTIONS
+      - "4102:15672"     # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - microservices-network
+
+volumes:
+  moderate-cache:
+
+networks:
+  microservices-network:
+    driver: bridge

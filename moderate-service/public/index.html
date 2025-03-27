@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Moderate Questions</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Moderator Panel</h1>
+    <div id="status">Waiting for new submissions...</div>
+
+    <form id="moderationForm" class="hidden">
+      <label>Question:</label>
+      <textarea id="question" required></textarea>
+
+      <label>Answers:</label>
+      <div id="answersContainer"></div>
+
+      <label for="correct">Correct Answer:</label>
+      <select id="correct" required></select>
+
+      <label for="category">Category:</label>
+      <input type="text" id="category" required />
+
+      <input type="hidden" id="ackTag" />
+
+      <button type="submit">Approve</button>
+      <button type="button" id="rejectBtn">Reject</button>
+    </form>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

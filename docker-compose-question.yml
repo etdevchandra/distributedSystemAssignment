@@ -30,7 +30,7 @@ services:
       - mongo
     environment:
       - MONGO_URI=mongodb://mongo:27017/questiondb
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_URL=amqp://guest:guest@moderate-rabbitmq:5672
     networks:
       - microservices-network
     volumes:

@@ -23,16 +23,16 @@ const startETL = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('MongoDB connected in ETL');
 
-    // Connect to RabbitMQ with retry logic
+    // Connect to Moderate's RabbitMQ with retry logic
     const conn = await connectWithRetry(process.env.RABBITMQ_URL);
     const channel = await conn.createChannel();
-    await channel.assertQueue('SUBMITTED_QUESTIONS', { durable: true });
-    console.log('ETL listening on SUBMITTED_QUESTIONS queue');
+    await channel.assertQueue('MODERATED_QUESTIONS', { durable: true });
+    console.log('ETL listening on MODERATED_QUESTIONS queue');
 
     
     console.log("Waiting for messages...");
     // Consume messages
-    channel.consume('SUBMITTED_QUESTIONS', async (msg) => {
+    channel.consume('MODERATED_QUESTIONS', async (msg) => {
       if (msg !== null) {
         const messageContent = msg.content.toString();
         console.log('Message received:', messageContent);

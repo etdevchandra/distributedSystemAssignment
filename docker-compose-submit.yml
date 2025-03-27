@@ -5,9 +5,9 @@ services:
     ports:
       - "3200:3200"
     depends_on:
-      - rabbitmq
+      - submit-rabbitmq
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_URL=amqp://guest:guest@submit-rabbitmq:5672
       - QUESTION_SERVICE_URL=http://question:3000/categories
     volumes:
       - ./submit-service:/app
@@ -15,11 +15,12 @@ services:
     networks:
       - microservices-network
 
-  rabbitmq:
+  submit-rabbitmq:
     image: rabbitmq:3-management
+    container_name: submit-rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "4201:5672"     # AMQP port for SUBMITTED_QUESTIONS
+      - "4202:15672"    # Management UI
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
@@ -32,4 +33,3 @@ volumes:
 networks:
   microservices-network:
     driver: bridge
-
