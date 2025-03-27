@@ -1,0 +1,72 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: question-service
+    url: http://host.docker.internal:3000
+    routes:
+      - name: question-ui-route
+        paths:
+          - /question-ui
+        strip_path: false
+      - name: question-api-route
+        paths:
+          - /question
+          - /categories
+        methods:
+          - GET
+        strip_path: false
+      # NEW debug route
+      - name: question-debug-route
+        paths:
+          - /debug
+        methods:
+          - GET
+        strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 10
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+          headers:
+            - Content-Type
+            - Authorization
+          exposed_headers:
+            - X-RateLimit-Remaining
+            - X-RateLimit-Limit
+          credentials: true
+          max_age: 3600
+
+  - name: submit-service
+    url: http://host.docker.internal:3200
+    routes:
+      - name: submit-ui-route
+        paths:
+          - /submit-ui
+        strip_path: false
+      - name: submit-api-route
+        paths:
+          - /submit
+        methods:
+          - POST
+        strip_path: false
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - POST
+          headers:
+            - Content-Type
+          credentials: true
+          max_age: 3600

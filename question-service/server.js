@@ -6,8 +6,14 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve Question UI from /question-ui
+//app.use(express.static(path.join(__dirname, 'public')));
+app.use('/question-ui', express.static(path.join(__dirname, 'public')));
+
+// Add debug route to confirm service is running
+app.get('/debug', (req, res) => {
+  res.send('Question service is alive and responding');
+});
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {

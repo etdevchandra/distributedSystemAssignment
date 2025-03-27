@@ -7,7 +7,10 @@ const { initRabbitMQ } = require('./rabbitmq');
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
+app.use('/submit-ui', express.static(path.join(__dirname, 'public')));
+
+
 
 // Only initialize RabbitMQ (no MongoDB needed)
 initRabbitMQ()
