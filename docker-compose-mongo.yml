@@ -1,0 +1,46 @@
+services:
+  question:
+    build:
+      context: ./question-service
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    networks:
+      - microservices-network
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/questiondb
+      - DB_TYPE=mongo
+    volumes:
+      - ./question-service:/app
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - microservices-network
+
+  etl:
+    build:
+      context: ./etl-service
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/questiondb
+      - DB_TYPE=mongo
+      - RABBITMQ_URL=amqp://guest:guest@moderate-rabbitmq:5672
+    networks:
+      - microservices-network
+    volumes:
+      - ./etl-service:/app
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
