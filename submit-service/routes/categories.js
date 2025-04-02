@@ -5,7 +5,7 @@ const axios = require('axios');
 const router = express.Router();
 
 const CACHE_FILE = path.join(__dirname, '../cache/categories.json');
-const QUESTION_SERVICE_URL = process.env.QUESTION_SERVICE_URL || 'http://question:3000/categories';
+const QUESTION_SERVICE_URL = process.env.QUESTION_SERVICE_URL;
 
 /**
  * @swagger

@@ -3,16 +3,18 @@ services:
     build:
       context: ./question-service
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Hardcoded to keep host port explicit
     depends_on:
       - mongo
-    networks:
-      - microservices-network
+    env_file:
+      - ./question-service/.env
     environment:
-      - MONGO_URI=mongodb://mongo:27017/questiondb
+      - MONGO_URI
       - DB_TYPE=mongo
     volumes:
       - ./question-service:/app
+    networks:
+      - microservices-network
 
   mongo:
     image: mongo
@@ -29,18 +31,20 @@ services:
       context: ./etl-service
     depends_on:
       - mongo
+    env_file:
+      - ./etl-service/.env
     environment:
-      - MONGO_URI=mongodb://mongo:27017/questiondb
+      - MONGO_URI
+      - RABBITMQ_URL
       - DB_TYPE=mongo
-      - RABBITMQ_URL=amqp://guest:guest@moderate-rabbitmq:5672
-    networks:
-      - microservices-network
     volumes:
       - ./etl-service:/app
+    networks:
+      - microservices-network
+
+volumes:
+  mongo_data:
 
 networks:
   microservices-network:
     driver: bridge
-
-volumes:
-  mongo_data:

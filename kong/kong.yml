@@ -3,7 +3,7 @@ _transform: true
 
 services:
   - name: question-service
-    url: http://host.docker.internal:3000
+    url: http://10.1.0.4:3000 # private ip of question vm
     routes:
       - name: question-ui-route
         paths:
@@ -46,7 +46,7 @@ services:
           max_age: 3600
 
   - name: submit-service
-    url: http://host.docker.internal:3200
+    url: http://10.1.0.5:3200 # private ip of submit vm
     routes:
       - name: submit-ui-route
         paths:
@@ -71,7 +71,7 @@ services:
           max_age: 3600
 
   - name: moderate-service
-    url: http://host.docker.internal:3100
+    url: http://10.0.0.5:3100 # private ip of moderate vm
     routes:
       - name: moderate-ui-route
         paths:

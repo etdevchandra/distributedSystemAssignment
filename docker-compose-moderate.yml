@@ -3,24 +3,18 @@ services:
     build:
       context: ./moderate-service
     ports:
-      - "3100:3100"
+      - "3100:3100"  # Hardcoded to avoid dependency on external .env for host port
+    env_file:
+      - ./moderate-service/.env  # Load environment variables from file
     environment:
-      # Connect to Submit's RabbitMQ to consume SUBMITTED_QUESTIONS
-      - RABBITMQ_URL=amqp://guest:guest@submit-rabbitmq:5672
-      
-      # Connect to Moderate's own RabbitMQ to publish MODERATED_QUESTIONS
-      - MODERATE_RABBITMQ_URL=amqp://guest:guest@moderate-rabbitmq:5672
-      
-      # For category list from Question service
-      - QUESTION_SERVICE_URL=http://question:3000/categories
-
+      - RABBITMQ_URL
+      - MODERATE_RABBITMQ_URL
+      - QUESTION_SERVICE_URL
     volumes:
       - ./moderate-service:/app
       - moderate-cache:/app/cache
-
     depends_on:
       - moderate-rabbitmq
-
     networks:
       - microservices-network
 
@@ -28,8 +22,8 @@ services:
     image: rabbitmq:3-management
     container_name: moderate-rabbitmq
     ports:
-      - "4101:5672"      # AMQP port for MODERATED_QUESTIONS
-      - "4102:15672"     # Management UI
+      - "4101:5672"     # AMQP port
+      - "4102:15672"    # Management UI
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest

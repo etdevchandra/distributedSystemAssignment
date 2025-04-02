@@ -3,12 +3,14 @@ services:
     build:
       context: ./submit-service
     ports:
-      - "3200:3200"
+      - "3200:3200"  # Hardcoded, since ${PORT} from env_file is not available during Compose parsing
     depends_on:
       - submit-rabbitmq
+    env_file:
+      - ./submit-service/.env  # This will set variables inside the container
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@submit-rabbitmq:5672
-      - QUESTION_SERVICE_URL=http://question:3000/categories
+      - RABBITMQ_URL
+      - QUESTION_SERVICE_URL
     volumes:
       - ./submit-service:/app
       - submit-cache:/app/cache
@@ -19,8 +21,8 @@ services:
     image: rabbitmq:3-management
     container_name: submit-rabbitmq
     ports:
-      - "4201:5672"     # AMQP port for SUBMITTED_QUESTIONS
-      - "4202:15672"    # Management UI
+      - "4201:5672"
+      - "4202:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest

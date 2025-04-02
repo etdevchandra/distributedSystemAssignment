@@ -29,27 +29,26 @@ if (dbType === 'mysql') {
   router.get('/:category', async (req, res) => {
     const { category } = req.params;
     const count = parseInt(req.query.count) || 1;
-
+  
     try {
-      const [rows] = await pool.query(
-        'SELECT * FROM questions WHERE category = ? ORDER BY RAND() LIMIT ?',
-        [category, count]
-      );
-
-      // Parse the answers JSON
+      const [rows] = category.toLowerCase() === 'any'
+        ? await pool.query('SELECT * FROM questions ORDER BY RAND() LIMIT ?', [count])
+        : await pool.query('SELECT * FROM questions WHERE category = ? ORDER BY RAND() LIMIT ?', [category, count]);
+  
       const parsed = rows.map(row => ({
         question: row.question,
         answers: row.answers,
         correct: row.correct,
         category: row.category
       }));
-
+  
       res.json(parsed);
     } catch (err) {
       console.error('MySQL error:', err.message);
       res.status(500).json({ error: 'Database error' });
     }
   });
+  
 
 } else {
   // MongoDB (Mongoose) setup
@@ -70,19 +69,21 @@ if (dbType === 'mysql') {
   router.get('/:category', async (req, res) => {
     const { category } = req.params;
     const count = parseInt(req.query.count) || 1;
-
+  
     try {
+      const matchStage = category.toLowerCase() === 'any' ? {} : { category };
       const questions = await Question.aggregate([
-        { $match: { category } },
+        { $match: matchStage },
         { $sample: { size: count } }
       ]);
-
+  
       res.json(questions);
     } catch (err) {
       console.error('MongoDB error:', err.message);
       res.status(500).json({ error: 'Database error' });
     }
   });
+  
 }
 
 module.exports = router;

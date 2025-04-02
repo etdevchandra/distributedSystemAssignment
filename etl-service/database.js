@@ -4,12 +4,15 @@ const DB_TYPE = process.env.DB_TYPE || 'mongo';
 const connectWithRetry = async (connectFn, label, retries = 10, delay = 3000) => {
   for (let i = 0; i < retries; i++) {
     try {
-      return await connectFn();
-    } catch {
+      const result = await connectFn();
+      console.log(`${label} connected`);
+      return result;
+    } catch (err) {
+      console.warn(`${label} connection failed (attempt ${i + 1}/${retries}): ${err.message}`);
       await new Promise(res => setTimeout(res, delay));
     }
   }
-  throw new Error(`Failed to connect to ${label}`);
+  throw new Error(`Failed to connect to ${label} after ${retries} attempts`);
 };
 
 async function initDatabase() {
@@ -23,16 +26,22 @@ async function initDatabase() {
 
     saveToDatabase = async (data) => {
       const exists = await Question.findOne({ question: data.question, category: data.category });
-      if (!exists) await Question.create(data);
+      if (!exists) {
+        await Question.create(data);
+        console.log('Question inserted into MongoDB');
+      } else {
+        console.log('Duplicate question skipped (MongoDB)');
+      }
     };
 
   } else if (DB_TYPE === 'mysql') {
     const mysql = require('mysql2/promise');
+
     const pool = await connectWithRetry(() => mysql.createPool({
       host: process.env.MYSQL_HOST || 'mysql',
       user: process.env.MYSQL_USER || 'root',
       password: process.env.MYSQL_PASSWORD || 'password',
-      database: process.env.MYSQL_DB || 'questiondb'
+      database: process.env.MYSQL_DATABASE || 'questiondb'
     }), 'MySQL');
 
     await pool.execute(`
@@ -57,6 +66,9 @@ async function initDatabase() {
           'INSERT INTO questions (question, answers, correct, category) VALUES (?, ?, ?, ?)',
           [data.question, answers, data.correct, data.category]
         );
+        console.log('Question inserted into MySQL');
+      } else {
+        console.log('Duplicate question skipped (MySQL)');
       }
     };
   }

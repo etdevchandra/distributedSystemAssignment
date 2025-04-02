@@ -9,7 +9,11 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("/categories")
     .then(res => res.json())
     .then(data => {
-      categorySelect.innerHTML = '<option value="">--Select Category--</option>';
+      categorySelect.innerHTML = `
+        <option value="">--Select Category--</option>
+        <option value="any">Any</option>
+      `;
+
       data.forEach(cat => {
         const option = document.createElement("option");
         option.value = cat;
@@ -17,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
         categorySelect.appendChild(option);
       });
     });
+
 
   // Fetch question
   fetchBtn.addEventListener("click", () => {

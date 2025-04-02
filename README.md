@@ -1,133 +1,236 @@
-# 📘 README.md – Distributed Quiz System
+# Distributed Microservices Assessment (CO3404)
 
-## 🎯 Project Overview
 
-This is a distributed system for submitting and retrieving multiple-choice quiz questions. It progresses from a simple containerized setup (Option 1) to a resilient microservice architecture with a message queue and API Gateway (Option 3).
+
+## Project Overview
+
+This project implements a distributed system based on message-driven microservices using Node.js, Docker, RabbitMQ, and MongoDB/MySQL. It supports full functionality for:
+
+- Question Service (MongoDB or MySQL)
+- Submit Service
+- Moderate Service
+- ETL Service
+- Kong API Gateway (HTTPS + rate limiting)
+- RabbitMQ message queues between services
+
+All services are containerized using Docker and designed to run across separate VMs or locally for testing.
 
 ---
 
-## 🧱 Architecture Summary
 
-- **Question Service**: Serves random questions by category from MongoDB.
+## Architecture Summary
+
+- **Question Service**: Serves random questions by category from MongoDB or MySQL.
 - **Submit Service**: Accepts new questions via a form and submits them via RabbitMQ.
-- **ETL Service**: Consumes questions from the queue and writes to MongoDB.
-- **MongoDB**: Central database, shared between services.
-- **RabbitMQ**: Message broker for decoupling submission and storage.
+- **Moderate Service**: Receives messages from Submit and provides an interface for approving them.
+- **ETL Service**: Consumes approved questions from the moderated queue and writes to the database.
+- **MongoDB / MySQL**: Shared database.
+- **RabbitMQ**: Message broker for decoupling services.
 - **Kong API Gateway**: Handles routing, rate limiting, and HTTPS access.
 
 ---
 
-## 🐳 Services & Docker Setup
 
-| Service | Port | Description |
-|--------|------|-------------|
-| `question-service` | `3000` | UI and API for retrieving questions and categories |
-| `submit-service` | `3200` | UI and API for submitting questions |
-| `etl-service` | — | Background service, listens to queue and writes to DB |
-| `mongo` | `27017` | Shared database |
-| `rabbitmq` | `5672`, `15672` | Queue and admin console |
-| `kong` | `8445`, `443` | Unified API Gateway with HTTPS and rate limiting |
-
----
-
-## 🖥️ How to Run
-
-### 👉 Start Question + ETL + MongoDB
-
-```bash
-docker-compose -f docker-compose-questions.yml up --build
-```
-
-### 👉 Start Submit + RabbitMQ
-
-```bash
-docker-compose -f docker-compose-submit.yml up --build
-```
-
-### 👉 Start Kong (if separate)
-
-Make sure `kong.yml`, `kong.crt`, and `kong.key` are correctly mounted and exposed.
-
----
-
-## 🧪 Functional Features (Option 1–3)
-
-### ✅ Question Service
-- View random question from selected category
-- Answers randomized on every load
-- Categories fetched from DB on interaction
-- NodeJS + Express + MongoDB
-- Serves static HTML/CSS/JS
-- `/question/:category?count=3`
-- `/categories`
-
-### ✅ Submit Service
-- Form to submit a new question + 4 answers
-- Dropdown to choose existing or new category
-- Validates complete input before submission
-- POSTs to `/submit`
-- GETs `/categories` from Question service
-- Swagger docs at `/docs`
-- Caches categories in Docker volume
-
-### ✅ ETL Service
-- Consumes from `SUBMITTED_QUESTIONS` queue
-- Validates and writes to MongoDB
-- Skips duplicates
-- Runs in Docker
-
-### ✅ RabbitMQ
-- Handles asynchronous messaging
-- Accessible via `http://localhost:15672` (guest/guest)
-
-### ✅ Kong API Gateway
-- Unified access point to all services
-- Rate limits `/question` API (10 req/min)
-- HTTPS via self-signed cert (`kong.pem`)
-- CORS enabled for both services
-
----
-
-## 🗂️ Project Structure
+## Folder Structure
 
 ```
-project-root/
-│
+/
 ├── question-service/
+│   └── .env                       # MongoDB/MySQL + RabbitMQ config
 ├── submit-service/
+│   └── .env                       # RabbitMQ + question service URL
+├── moderate-service/
+│   └── .env                       # RabbitMQ + question category source
 ├── etl-service/
-├── docker-compose-questions.yml
-├── docker-compose-submit.yml
-├── kong.yml
-├── kong.pem / kong.key
+│   └── .env                       # # Mongo/MySQL configs + RabbitMQ 
+├── docker-compose-mongo.yml      # Mongo-based service stack
+├── docker-compose-mysql.yml      # MySQL-based service stack
+├── docker-compose-submit.yml     # Submit service + RabbitMQ
+├── docker-compose-moderate.yml   # Moderate service + RabbitMQ
+├── docker-compose-kong.yml       # Kong API Gateway container setup
+├── kong/
+│   ├── kong.yml                  # Declarative config (routes, services, plugins)
+│   ├── kong.pem                  # SSL certificate (public)
+│   ├── kong.key                  # SSL private key
+│   ├── kong.crt                  # Optional CRT (same as .pem, for completeness or compatibility)
+      
 ```
 
 ---
 
-## 🧾 Environment Variables
 
-- `MONGO_URI=mongodb://mongo:27017/questiondb`
-- `RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672`
-- `QUESTION_SERVICE_URL=http://question:3000/categories`
+## How to Run
+
+### 1. Install Prerequisites
+- Docker and Docker Compose
+- Node.js (optional for local testing)
+- `docker compose` CLI v2+
+
+### 2. Choose Database Type for Question Service
+
+```
+docker compose -f docker-compose-mongo.yml up --build
+# or
+docker compose -f docker-compose-mysql.yml up --build
+```
+
+No need to change `.env` — the Compose file sets:
+```yaml
+environment:
+  - DB_TYPE=mongo  # or mysql
+```
+
+### 3. Start Submit and Moderate Services
+
+```
+docker compose -f docker-compose-submit.yml up --build
+docker compose -f docker-compose-moderate.yml up --build
+```
+
+### 4. Start Kong 
+
+```
+docker compose -f docker-compose-kong.yml up --build
+```
+
+Access:
+- Kong Admin: http://<your-kong-ip>:8001
+- UIs: `https://<your-kong-ip>:8443/question-ui`, `/submit-ui`, `/moderate-ui`
 
 ---
 
-## 📋 Testing Guide
 
-- ✅ Test API endpoints via Swagger (`/docs`)
-- ✅ Use browser UI to verify randomization and validation
-- ✅ Monitor message queue via RabbitMQ Admin
-- ✅ Shut down services to test resilience (ETL continues while Question is down)
-- ✅ Use Kong to access everything from a single origin with HTTPS
+## Environment Configuration
+
+### `etl-service/.env`
+
+```env
+# MongoDB configuration (used if DB_TYPE = mongo)
+MONGO_URI=mongodb://mongo:27017/questiondb
+
+# MySQL configuration (used if DB_TYPE = mysql)
+MYSQL_HOST=mysql
+MYSQL_USER=root
+MYSQL_PASSWORD=password
+MYSQL_DATABASE=questiondb
+
+# RabbitMQ to consume MODERATED_QUESTIONS
+# Local: use service name (e.g., 'moderate-rabbitmq')
+# VM: use private IP of Moderate VM
+RABBITMQ_URL=amqp://guest:guest@10.0.0.5:4101
+```
 
 ---
 
-## 📹 Demonstration Checklist (for video)
+### `moderate-service/.env`
 
-- Show UI for question + submit apps
-- Add a question, view it in MongoDB
-- Show cache fallback from Submit when Question is off
-- Demonstrate rate limit via Thunder Client
-- Test API docs at `/docs`
-- Show Docker and Kong configuration
-- Mention how the system can scale with more microservices
+```env
+PORT=3100
+
+# RabbitMQ to consume SUBMITTED_QUESTIONS
+# Local: use 'submit-rabbitmq'
+# VM: use private IP of Submit VM’s RabbitMQ
+RABBITMQ_URL=amqp://guest:guest@10.1.0.5:4201
+
+# RabbitMQ to publish MODERATED_QUESTIONS
+MODERATE_RABBITMQ_URL=amqp://guest:guest@moderate-rabbitmq:5672
+
+# Category source from Question Service
+# Local: use 'question'
+# VM: use private IP of Question VM
+QUESTION_SERVICE_URL=http://10.1.0.4:3000/categories
+```
+
+---
+
+### `question-service/.env`
+
+```env
+PORT=3000
+
+# MongoDB configuration
+MONGO_URI=mongodb://mongo:27017/questiondb
+
+# MySQL configuration
+MYSQL_HOST=mysql
+MYSQL_USER=root
+MYSQL_PASSWORD=password
+MYSQL_DATABASE=questiondb
+```
+
+---
+
+### `submit-service/.env`
+
+```env
+PORT=3200
+
+# Category source from Question Service
+# Local: use 'question'
+# VM: use private IP of Question VM
+QUESTION_SERVICE_URL=http://10.1.0.4:3000/categories
+
+# RabbitMQ to publish SUBMITTED_QUESTIONS
+RABBITMQ_URL=amqp://guest:guest@submit-rabbitmq:5672
+```
+
+---
+
+
+## Functional Features
+
+### Question Service
+- Get questions by category (`/question/:category?count=3`)
+- View all categories (`/categories`)
+- MongoDB or MySQL
+- Dockerized + Express
+
+### Submit Service
+- Form UI to submit questions
+- GET categories from Question service
+- POST new questions via `/submit`
+- Swagger docs at `/docs`
+- Category cache fallback
+- Sends to `SUBMITTED_QUESTIONS` queue
+
+### Moderate Service
+- Polls `SUBMITTED_QUESTIONS` from Submit's RabbitMQ
+- Displays pending questions in UI
+- Approves questions to `MODERATED_QUESTIONS`
+- Sends approved data to ETL
+
+### ETL Service
+- Consumes `MODERATED_QUESTIONS` from Moderate RabbitMQ
+- Validates and inserts to database
+- Supports MongoDB and MySQL
+
+### Kong Gateway
+- HTTPS via `8443`
+- Rate-limits `/question` API
+- CORS enabled
+- Routes: `/question-ui`, `/submit-ui`, `/moderate-ui`
+
+---
+
+
+## Notes for Lecturer
+
+- **OIDC (Auth0) authentication was initially implemented but later removed for simplicity.**
+- All services are containerized, message-driven, and tested via Kong API Gateway.
+- System includes category caching, queue communication, and ETL design patterns.
+
+---
+
+
+## Summary
+
+- Full Option 4 architecture minus OIDC
+- MongoDB + MySQL support
+- Category caching + polling UI
+- Message-driven with RabbitMQ
+- Kong API Gateway with HTTPS and rate limiting
+- Documented, professional structure
+
+
+
+Thank you for reviewing this project!

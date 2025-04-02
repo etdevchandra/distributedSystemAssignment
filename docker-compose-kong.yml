@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  kong:
+    image: kong:latest
+    container_name: kong
+    restart: unless-stopped
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
+      KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+      KONG_SSL_CERT: /etc/kong/kong.pem
+      KONG_SSL_CERT_KEY: /etc/kong/kong.key
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+    volumes:
+      - ./kong/kong.yml:/etc/kong/kong.yml
+      - ./kong/kong.pem:/etc/kong/kong.pem
+      - ./kong/kong.key:/etc/kong/kong.key
